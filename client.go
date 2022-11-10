@@ -65,6 +65,50 @@ func (client *Client) menu() bool {
 	}
 }
 
+//查在线用户
+func (client *Client) SelectUser() {
+	sendMsg := "who\n"
+	_, err := client.conn.Write([]byte(sendMsg))
+	if err != nil {
+		fmt.Println("conn write error:", err)
+		return
+	}
+}
+
+func (client *Client) PrivateChat() {
+	var remoteName string
+	var chatMsg string
+
+	client.SelectUser()
+	fmt.Println("请输入聊天对象[用户名],exit退出")
+	fmt.Scanln(&remoteName)
+
+	for remoteName != "exit" {
+		fmt.Println("请输入消息内容, exit退出")
+		fmt.Scanln(&chatMsg)
+
+		for chatMsg != "exit" {
+			//消息不为空
+			if len(chatMsg) != 0 {
+				sendMsg := "to|" + remoteName + "|" + chatMsg + "\n\n"
+				_, err := client.conn.Write([]byte(sendMsg))
+				if err != nil {
+					fmt.Println("connect error:", err)
+					break
+				}
+			}
+
+			chatMsg = ""
+			fmt.Println("请输入消息内容, exit退出")
+			fmt.Scanln(&chatMsg)
+		}
+
+		client.SelectUser()
+		fmt.Println("请输入聊天对象[用户名],exit退出")
+		fmt.Scanln(&remoteName)
+	}
+}
+
 func (client *Client) publicChat() {
 	var chatMsg string
 	fmt.Println(">>>>请输入聊天内容，exit退出")
@@ -111,6 +155,7 @@ func (client *Client) Run() {
 		case 2:
 			//私聊模式
 			fmt.Println("私聊模式选择。..")
+			client.PrivateChat()
 			//break
 		case 3:
 			//改用户名
